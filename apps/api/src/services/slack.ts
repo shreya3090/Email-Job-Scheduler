@@ -1,0 +1,3 @@
+import {db} from '../db'; import {env} from '../config/env';
+export async function notifySlack(userId:string,text:string){const {rows}=await db.query('SELECT access_token FROM slack_connections WHERE user_id=$1',[userId]);if(!rows[0])return;await fetch('https://slack.com/api/chat.postMessage',{method:'POST',headers:{Authorization:`Bearer ${rows[0].access_token}`,'Content-Type':'application/json'},body:JSON.stringify({channel:'#general',text})}).catch(()=>{});}
+export function slackAuthUrl(state:string){const params=new URLSearchParams({client_id:env.slackId,redirect_uri:env.slackRedirect,user_scope:'chat:write',state});return `https://slack.com/oauth/v2/authorize?${params}`}

@@ -1,0 +1,4 @@
+import {Client} from '@elastic/elasticsearch'; import {env} from '../config/env'; const es=new Client({node:env.es});
+export async function initSearch(){try{await es.indices.create({index:env.esIndex,mappings:{properties:{recipient:{type:'text'},subject:{type:'text'},body:{type:'text'},status:{type:'keyword'},scheduled_at:{type:'date'},sent_at:{type:'date'}}}},{ignore:400});}catch(e){console.error('Elasticsearch init',e)}}
+export async function indexEmail(e:any){await es.index({index:env.esIndex,id:e.id,document:{recipient:e.recipient,subject:e.subject,body:e.body,status:e.status,scheduled_at:e.scheduled_at,sent_at:e.sent_at}})}
+export async function searchEmails(q:string,userId:string){const r=await es.search({index:env.esIndex,query:{bool:{must:[{multi_match:{query:q,fields:['recipient','subject','body']}},{term:{user_id:userId}}]}}});return r.hits.hits.map((h:any)=>h._source)}
